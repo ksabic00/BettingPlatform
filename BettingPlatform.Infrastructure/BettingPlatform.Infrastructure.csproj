@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Persistence\NewFolder\**" />
+    <EmbeddedResource Remove="Persistence\NewFolder\**" />
+    <None Remove="Persistence\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
       <PrivateAssets>all</PrivateAssets>
@@ -21,10 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\BettingPlatform.Application\BettingPlatform.Application.csproj" />
     <ProjectReference Include="..\BettingPlatform.Domain\BettingPlatform.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Persistence\NewFolder\" />
   </ItemGroup>
 
 </Project>
