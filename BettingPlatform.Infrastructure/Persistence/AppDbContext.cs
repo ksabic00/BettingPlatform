@@ -1,4 +1,5 @@
-﻿using BettingPlatform.Domain.Entities;
+﻿using BettingPlatform.Application.Common.Interfaces;
+using BettingPlatform.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace BettingPlatform.Infrastructure.Persistence
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : DbContext, IAppDbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 

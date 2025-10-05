@@ -1,4 +1,5 @@
-﻿using BettingPlatform.Infrastructure.Persistence;
+﻿using BettingPlatform.Application.Common.Interfaces;
+using BettingPlatform.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,8 @@ namespace BettingPlatform.Infrastructure
         {
             services.AddDbContext<AppDbContext>(opt =>
                 opt.UseSqlServer(cfg.GetConnectionString("DefaultConnection")));
+            services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+
             return services;
         }
     }
