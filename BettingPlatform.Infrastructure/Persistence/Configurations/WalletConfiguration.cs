@@ -25,6 +25,9 @@ namespace BettingPlatform.Infrastructure.Persistence.Configurations
              .WithMany()
              .HasForeignKey(x => x.PlayerId)
              .OnDelete(DeleteBehavior.Restrict);
+
+            b.ToTable(t => t.HasCheckConstraint("CK_Wallet_Balance_NonNegative", "[Balance] >= 0"));
+
         }
     }
 }
