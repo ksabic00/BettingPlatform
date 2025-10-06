@@ -1,12 +1,16 @@
+using BettingPlatform.Api.Middleware;
 using BettingPlatform.Application;
 using BettingPlatform.Infrastructure;
+using BettingPlatform.Infrastructure.Persistence;
+using BettingPlatform.Infrastructure.Persistence.Seed;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 namespace BettingPlatform.Api
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +23,28 @@ namespace BettingPlatform.Api
 
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(builder.Configuration);
+            builder.Services.AddTransient<ExceptionHandlingMiddleware>();
+
+            builder.Services.AddCors(opt =>
+             {
+                 opt.AddPolicy("ng", p => p
+                     .WithOrigins("http://localhost:4200")
+                     .AllowAnyHeader()
+                     .AllowAnyMethod());
+             });
 
             var app = builder.Build();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var logger = scope.ServiceProvider
+                                  .GetRequiredService<ILoggerFactory>()
+                                  .CreateLogger("InitialDataSeeder");
+
+                await db.Database.MigrateAsync();
+                await InitialDataSeeder.SeedAsync(db, logger);
+            }
 
             if (app.Environment.IsDevelopment())
             {
@@ -30,9 +54,15 @@ namespace BettingPlatform.Api
 
             app.UseSerilogRequestLogging();
 
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+
             app.UseHttpsRedirection();
+
+            app.UseCors("ng"); 
+
             app.MapControllers();
-            app.Run();
+
+            await app.RunAsync();
         }
     }
 }

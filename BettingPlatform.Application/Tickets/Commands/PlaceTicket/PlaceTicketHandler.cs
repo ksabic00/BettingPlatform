@@ -1,4 +1,6 @@
-﻿using BettingPlatform.Application.Common.Interfaces;
+﻿using System.Linq;
+using BettingPlatform.Application.Common.Interfaces;
+using BettingPlatform.Application.Common.Validation;  // helper za ValidationFailure
 using BettingPlatform.Application.Tickets.Dtos;
 using BettingPlatform.Domain.Entities;
 using BettingPlatform.Domain.Enums;
@@ -18,10 +20,9 @@ public sealed class PlaceTicketHandler : IRequestHandler<PlaceTicketCommand, Tic
                      ?? throw new KeyNotFoundException("Wallet not found.");
 
         if (cmd.Selections.Count == 0)
-            throw new FluentValidation.ValidationException("At least one selection is required.");
+            throw AppValidation.Error("Selections", "At least one selection is required.", "NoSelections");
 
         var now = DateTime.UtcNow;
-
         var offerIds = cmd.Selections.Select(s => s.OfferId).Distinct().ToList();
         var outcomeIds = cmd.Selections.Select(s => s.OutcomeTemplateId).Distinct().ToList();
 
@@ -29,15 +30,17 @@ public sealed class PlaceTicketHandler : IRequestHandler<PlaceTicketCommand, Tic
             .Where(o => offerIds.Contains(o.Id))
             .Select(o => new { o.Id, o.MatchId, o.Category, o.ValidFromUtc, o.ValidToUtc })
             .ToListAsync(ct);
-        if (offers.Count != offerIds.Count)
-            throw new FluentValidation.ValidationException("Some offers do not exist.");
 
         var offerById = offers.ToDictionary(x => x.Id, x => x);
 
-        foreach (var off in offers)
+        foreach (var (s, i) in cmd.Selections.Select((s, i) => (s, i)))
         {
+            if (!offerById.TryGetValue(s.OfferId, out var off))
+                throw AppValidation.Error($"Selections[{i}].OfferId", "Offer does not exist.", "OfferMissing");
+
             var active = off.ValidFromUtc <= now && (off.ValidToUtc == null || off.ValidToUtc >= now);
-            if (!active) throw new FluentValidation.ValidationException("Offer is not active.");
+            if (!active)
+                throw AppValidation.Error($"Selections[{i}].OfferId", "Offer is not active.", "OfferInactive");
         }
 
         var offerOutcomes = await _db.OfferOutcomes
@@ -46,25 +49,26 @@ public sealed class PlaceTicketHandler : IRequestHandler<PlaceTicketCommand, Tic
 
         var outcomeByKey = offerOutcomes.ToDictionary(x => (x.OfferId, x.OutcomeTemplateId), x => x);
 
-
-        foreach (var s in cmd.Selections)
+        foreach (var (s, i) in cmd.Selections.Select((s, i) => (s, i)))
         {
             if (!outcomeByKey.TryGetValue((s.OfferId, s.OutcomeTemplateId), out var oo))
-                throw new FluentValidation.ValidationException("Selected outcome does not exist for the given offer.");
+                throw AppValidation.Error($"Selections[{i}].OutcomeTemplateId",
+                    "Selected outcome does not exist for the given offer.", "OutcomeMissing");
+
             if (!oo.IsEnabled)
-                throw new FluentValidation.ValidationException("Selected outcome is disabled.");
+                throw AppValidation.Error($"Selections[{i}].OutcomeTemplateId",
+                    "Selected outcome is disabled.", "OutcomeDisabled");
         }
 
         var topCount = cmd.Selections.Count(s => offerById[s.OfferId].Category == OfferCategory.Top);
         if (topCount > 1)
-            throw new FluentValidation.ValidationException("You cannot combine more than one TOP offer.");
+            throw AppValidation.Error("Selections", "You cannot combine more than one TOP offer.", "MoreThanOneTop");
 
-        var matchCounts = cmd.Selections
+        var hasDuplicateMatch = cmd.Selections
             .Select(s => offerById[s.OfferId].MatchId)
-            .GroupBy(m => m)
-            .ToDictionary(g => g.Key, g => g.Count());
-        if (matchCounts.Values.Any(c => c > 1))
-            throw new FluentValidation.ValidationException("You cannot add the same match more than once.");
+            .GroupBy(m => m).Any(g => g.Count() > 1);
+        if (hasDuplicateMatch)
+            throw AppValidation.Error("Selections", "You cannot add the same match more than once.", "DuplicateMatch");
 
         var fee = Math.Round(cmd.Stake * 0.05m, 2, MidpointRounding.AwayFromZero);
         var stakeNet = cmd.Stake - fee;
@@ -77,7 +81,7 @@ public sealed class PlaceTicketHandler : IRequestHandler<PlaceTicketCommand, Tic
         var potential = Math.Round(stakeNet * combinedOdds, 2, MidpointRounding.AwayFromZero);
 
         if (wallet.Balance < cmd.Stake)
-            throw new FluentValidation.ValidationException("Insufficient funds.");
+            throw AppValidation.Error("Stake", "Insufficient funds.", "InsufficientFunds");
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
 

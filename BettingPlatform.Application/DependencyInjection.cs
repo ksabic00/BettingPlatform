@@ -1,25 +1,25 @@
-﻿using BettingPlatform.Application.Common.Behaviors;
+﻿using System.Reflection;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using BettingPlatform.Application.Common.Behaviors;
+using BettingPlatform.Application.Tickets.Commands.PlaceTicket; 
 
-namespace BettingPlatform.Application
+namespace BettingPlatform.Application;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        public static IServiceCollection AddApplication(this IServiceCollection services)
+        services.AddMediatR(cfg =>
         {
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-            services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-            return services;
-        }
-    }
+            cfg.RegisterServicesFromAssemblyContaining<PlaceTicketHandler>(); 
 
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
+
+        services.AddValidatorsFromAssemblyContaining<PlaceTicketCommand>();
+
+        return services;
+    }
 }
