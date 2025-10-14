@@ -19,21 +19,20 @@
           <div class="market-title">{{ marketLabel(mk.marketCode) }}</div>
           <div class="outcomes">
             <button
-            class="chip"
-            *ngFor="let oc of mk.outcomes"
-            (click)="pick(m, mk, oc)"
-            [disabled]="!oc.isEnabled || m.suspended"
-            [class.disabled]="!oc.isEnabled || m.suspended"
-            [class.selected]="isSelected(m.matchId, oc.outcomeTemplateId)">        
-            <span class="code">{{ oc.outcomeCode }}</span>       
-            <span class="odds" *ngIf="oc.isEnabled && !m.suspended; else oddsDash">
-              {{ oc.odds | number:'1.2-2' }}
-            </span>
-            <ng-template #oddsDash>
-              <span class="odds muted">—</span>
-            </ng-template>
-          </button>
-          
+              class="chip"
+              *ngFor="let oc of mk.outcomes"
+              (click)="pick(m, mk, oc)"
+              [disabled]="!oc.isEnabled || m.suspended"
+              [class.disabled]="!oc.isEnabled || m.suspended"
+              [class.selected]="isSelected(m.matchId, mk.offerId, oc.outcomeTemplateId)">
+              <span class="code">{{ oc.outcomeCode }}</span>
+              <span class="odds" *ngIf="oc.isEnabled && !m.suspended; else oddsDash">
+                {{ oc.odds | number:'1.2-2' }}
+              </span>
+              <ng-template #oddsDash>
+                <span class="odds muted">—</span>
+              </ng-template>
+            </button>
           </div>
         </div>
       </ng-container>
@@ -60,20 +59,20 @@
           <div class="market-title">{{ marketLabel(mk.marketCode) }}</div>
           <div class="outcomes">
             <button
-            class="chip"
-            *ngFor="let oc of mk.outcomes"
-            (click)="pick(m, mk, oc)"
-            [disabled]="!oc.isEnabled || m.suspended"
-            [class.disabled]="!oc.isEnabled || m.suspended"
-            [class.selected]="isSelected(m.matchId, oc.outcomeTemplateId)">        
-            <span class="code">{{ oc.outcomeCode }}</span>       
-            <span class="odds" *ngIf="oc.isEnabled && !m.suspended; else oddsDash">
-              {{ oc.odds | number:'1.2-2' }}
-            </span>
-            <ng-template #oddsDash>
-              <span class="odds muted">—</span>
-            </ng-template>
-          </button>
+              class="chip"
+              *ngFor="let oc of mk.outcomes"
+              (click)="pick(m, mk, oc)"
+              [disabled]="!oc.isEnabled || m.suspended"
+              [class.disabled]="!oc.isEnabled || m.suspended"
+              [class.selected]="isSelected(m.matchId, mk.offerId, oc.outcomeTemplateId)">
+              <span class="code">{{ oc.outcomeCode }}</span>
+              <span class="odds" *ngIf="oc.isEnabled && !m.suspended; else oddsDash">
+                {{ oc.odds | number:'1.2-2' }}
+              </span>
+              <ng-template #oddsDash>
+                <span class="odds muted">—</span>
+              </ng-template>
+            </button>
           </div>
         </div>
       </ng-container>

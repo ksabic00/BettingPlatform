@@ -10,24 +10,18 @@ import {
 } from '../../api';
 import { BetslipService } from '../../core/state/betslip.service';
 
-type NormalizedMarket = Omit<MarketOfferDto, 'outcomes'> & {
-  outcomes: OfferOutcomeDto[];
-};
-type NormalizedMatch = Omit<MatchOfferDto, 'markets'> & {
-  markets: NormalizedMarket[];
-};
+type NormalizedMarket = Omit<MarketOfferDto, 'outcomes'> & { outcomes: OfferOutcomeDto[] };
+type NormalizedMatch  = Omit<MatchOfferDto,  'markets'>  & { markets: NormalizedMarket[] };
+
 type MatchVm = NormalizedMatch & {
   anyTop: boolean;
   suspended: boolean; 
-  matchCategory?: OfferCategory;  
 };
 
 const OUTCOME_ORDER = new Map<string, number>([
   ['1', 0], ['X', 1], ['2', 2], ['1X', 3], ['X2', 4], ['12', 5]
 ]);
-function outcomeRank(code?: string) {
-  return OUTCOME_ORDER.get(code ?? '') ?? 999;
-}
+const outcomeRank = (c?: string) => OUTCOME_ORDER.get(c ?? '') ?? 999;
 
 @Component({
   standalone: true,
@@ -37,19 +31,17 @@ function outcomeRank(code?: string) {
   styleUrls: ['./offers.component.scss']
 })
 export class OffersComponent implements OnInit {
-  OfferCategory = OfferCategory;
-
-  vm: MatchVm[] = [];
-
   topMatches: MatchVm[] = [];
   regularMatches: MatchVm[] = [];
+
+  OfferCategory = OfferCategory;
 
   private selectedMap = new Map<string, string>();
 
   constructor(private api: OffersService, private slip: BetslipService) {
     this.slip.selections$.subscribe(list => {
       this.selectedMap.clear();
-      list.forEach(s => this.selectedMap.set(s.matchId, s.outcomeTemplateId));
+      list.forEach(s => this.selectedMap.set(s.matchId, `${s.offerId}|${s.outcomeTemplateId}`));
     });
   }
 
@@ -65,23 +57,7 @@ export class OffersComponent implements OnInit {
         }))
       }));
 
-      this.vm = normalized
-        .map(m => {
-          const hasAnyOutcome = m.markets.some(mk => mk.outcomes.length > 0);
-          const allDisabled = hasAnyOutcome &&
-            m.markets.every(mk => mk.outcomes.every(oc => oc.isEnabled === false));
-
-          return {
-            ...m,
-            anyTop: m.markets.some(x => x.category === OfferCategory.Top),
-            suspended: allDisabled
-          };
-        })
-        .sort((a, b) =>
-          new Date(a.startsAtUtc!).getTime() - new Date(b.startsAtUtc!).getTime()
-        );
-
-      this.vm.forEach(m =>
+      normalized.forEach(m =>
         m.markets.sort((a, b) => {
           const ra = a.marketCode === '1X2' ? 0 : 1;
           const rb = b.marketCode === '1X2' ? 0 : 1;
@@ -89,29 +65,51 @@ export class OffersComponent implements OnInit {
         })
       );
 
-      this.vm = this.vm.map(m => ({
-        ...m,
-        matchCategory: m.markets.some(x => x.category === OfferCategory.Top)
-          ? OfferCategory.Top
-          : OfferCategory.Regular
-      }));
+      const suspendedFor = (mkts: NormalizedMarket[]) => {
+        const hasAnyOutcome = mkts.some(mk => mk.outcomes.length > 0);
+        return hasAnyOutcome && mkts.every(mk => mk.outcomes.every(oc => oc.isEnabled === false));
+      };
 
-      this.topMatches = this.vm
-        .filter(m => m.matchCategory === OfferCategory.Top)
-        .sort((a, b) => new Date(a.startsAtUtc!).getTime() - new Date(b.startsAtUtc!).getTime());
+      const topCards: MatchVm[] = [];
+      const regCards: MatchVm[] = [];
 
-      this.regularMatches = this.vm
-        .filter(m => m.matchCategory === OfferCategory.Regular)
-        .sort((a, b) => new Date(a.startsAtUtc!).getTime() - new Date(b.startsAtUtc!).getTime());
+      for (const m of normalized) {
+        const mkTop = m.markets.filter(x => x.category === OfferCategory.Top);
+        const mkReg = m.markets.filter(x => x.category === OfferCategory.Regular);
+
+        if (mkTop.length) {
+          topCards.push({
+            ...m,
+            markets: mkTop,
+            anyTop: true,
+            suspended: suspendedFor(mkTop)
+          });
+        }
+        if (mkReg.length) {
+          regCards.push({
+            ...m,
+            markets: mkReg,
+            anyTop: false,
+            suspended: suspendedFor(mkReg)
+          });
+        }
+      }
+
+      this.topMatches = topCards.sort((a, b) =>
+        new Date(a.startsAtUtc!).getTime() - new Date(b.startsAtUtc!).getTime()
+      );
+      this.regularMatches = regCards.sort((a, b) =>
+        new Date(a.startsAtUtc!).getTime() - new Date(b.startsAtUtc!).getTime()
+      );
     });
   }
 
   trackByMatch = (_: number, m: MatchVm) => m.matchId!;
   trackByMarket = (_: number, mk: NormalizedMarket) => mk.offerId!;
 
-  isSelected(matchId?: string, outcomeId?: string) {
-    if (!matchId || !outcomeId) return false;
-    return this.selectedMap.get(matchId) === outcomeId;
+  isSelected(matchId?: string, offerId?: string, outcomeId?: string) {
+    if (!matchId || !offerId || !outcomeId) return false;
+    return this.selectedMap.get(matchId) === `${offerId}|${outcomeId}`;
   }
 
   pick(m: MatchVm, mk: NormalizedMarket, oc: OfferOutcomeDto) {
@@ -127,7 +125,6 @@ export class OffersComponent implements OnInit {
       category: mk.category,
       outcomes: mk.outcomes
     };
-
     this.slip.addOrReplace(offer, oc);
   }
 
@@ -135,13 +132,9 @@ export class OffersComponent implements OnInit {
     '1X2': 'Basic',
     'DoubleChance': 'Double Chance'
   };
-  
   marketLabel(code: string | null | undefined): string {
-    const c = (code ?? '').trim();   
+    const c = (code ?? '').trim();
     if (!c) return '';
     return this.MARKET_LABELS[c] ?? c;
   }
-  
-
-  
 }
