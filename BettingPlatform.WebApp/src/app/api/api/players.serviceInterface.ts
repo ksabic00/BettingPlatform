@@ -12,6 +12,7 @@ import { HttpHeaders }                                       from '@angular/comm
 import { Observable }                                        from 'rxjs';
 
 import { CreatePlayerCommand } from '../model/models';
+import { PlayerSummaryDto } from '../model/models';
 
 
 import { Configuration }                                     from '../configuration';
@@ -21,6 +22,12 @@ import { Configuration }                                     from '../configurat
 export interface PlayersServiceInterface {
     defaultHeaders: HttpHeaders;
     configuration: Configuration;
+
+    /**
+     * 
+     * 
+     */
+    apiPlayersGet(extraHttpRequestParams?: any): Observable<Array<PlayerSummaryDto>>;
 
     /**
      * 

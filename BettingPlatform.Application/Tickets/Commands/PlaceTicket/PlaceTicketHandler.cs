@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using BettingPlatform.Application.Common.Interfaces;
-using BettingPlatform.Application.Common.Validation;  // helper za ValidationFailure
+using BettingPlatform.Application.Common.Validation;
 using BettingPlatform.Application.Tickets.Dtos;
 using BettingPlatform.Domain.Entities;
 using BettingPlatform.Domain.Enums;
@@ -19,10 +19,11 @@ public sealed class PlaceTicketHandler : IRequestHandler<PlaceTicketCommand, Tic
         var wallet = await _db.Wallets.FirstOrDefaultAsync(w => w.PlayerId == cmd.PlayerId, ct)
                      ?? throw new KeyNotFoundException("Wallet not found.");
 
-        if (cmd.Selections.Count == 0)
+        if (cmd.Selections is null || cmd.Selections.Count == 0)
             throw AppValidation.Error("Selections", "At least one selection is required.", "NoSelections");
 
         var now = DateTime.UtcNow;
+
         var offerIds = cmd.Selections.Select(s => s.OfferId).Distinct().ToList();
         var outcomeIds = cmd.Selections.Select(s => s.OutcomeTemplateId).Distinct().ToList();
 
@@ -60,28 +61,42 @@ public sealed class PlaceTicketHandler : IRequestHandler<PlaceTicketCommand, Tic
                     "Selected outcome is disabled.", "OutcomeDisabled");
         }
 
+
         var topCount = cmd.Selections.Count(s => offerById[s.OfferId].Category == OfferCategory.Top);
         if (topCount > 1)
             throw AppValidation.Error("Selections", "You cannot combine more than one TOP offer.", "MoreThanOneTop");
 
-        var hasDuplicateMatch = cmd.Selections
-            .Select(s => offerById[s.OfferId].MatchId)
-            .GroupBy(m => m).Any(g => g.Count() > 1);
+        var matchIds = cmd.Selections.Select(s => offerById[s.OfferId].MatchId).ToList();
+        var hasDuplicateMatch = matchIds.Distinct().Count() != matchIds.Count;
         if (hasDuplicateMatch)
-            throw AppValidation.Error("Selections", "You cannot add the same match more than once.", "DuplicateMatch");
+            throw AppValidation.Error("Selections", "You can select at most one pick per match.", "DuplicateMatch");
+
+        var selectionsWithMeta = cmd.Selections.Select(s =>
+        {
+            var off = offerById[s.OfferId];
+            return new { off.MatchId, off.Category };
+        }).ToList();
+
+        var conflictTopVsRegular = selectionsWithMeta
+            .GroupBy(x => x.MatchId)
+            .Any(g => g.Select(x => x.Category).Distinct().Count() > 1);
+
+        if (conflictTopVsRegular)
+            throw AppValidation.Error("Selections",
+                "The same match cannot be both TOP and REGULAR on the same ticket.", "TopVsRegularConflict");
 
         var fee = Math.Round(cmd.Stake * 0.05m, 2, MidpointRounding.AwayFromZero);
         var stakeNet = cmd.Stake - fee;
 
+        if (wallet.Balance < cmd.Stake)
+            throw AppValidation.Error("Stake", "Insufficient funds.", "InsufficientFunds");
+
         decimal combinedOdds = 1m;
         foreach (var s in cmd.Selections)
             combinedOdds *= outcomeByKey[(s.OfferId, s.OutcomeTemplateId)].Odds;
+
         combinedOdds = Math.Round(combinedOdds, 2, MidpointRounding.AwayFromZero);
-
         var potential = Math.Round(stakeNet * combinedOdds, 2, MidpointRounding.AwayFromZero);
-
-        if (wallet.Balance < cmd.Stake)
-            throw AppValidation.Error("Stake", "Insufficient funds.", "InsufficientFunds");
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
@@ -135,6 +150,7 @@ public sealed class PlaceTicketHandler : IRequestHandler<PlaceTicketCommand, Tic
             ReferenceId = ticketId.ToString(),
             Note = "Ticket fee 5%"
         });
+
         wallet.Balance -= cmd.Stake;
 
         await _db.SaveChangesAsync(ct);

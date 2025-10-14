@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { TicketsService } from '../../../api';
 import { BetslipService } from '../../../core/state/betslip.service';
+import { PlayerContextService } from '../../../core/state/player-context.service';
 
 @Component({
   selector: 'app-betslip-panel',
@@ -15,26 +16,34 @@ export class BetslipPanelComponent implements OnInit {
   stake = 10;
   placing = false;
   messages: string[] = [];
-
   selections$ = this.slip.selections$;
 
-  constructor(public slip: BetslipService, private tickets: TicketsService) {}
+  constructor(
+    public slip: BetslipService,
+    private tickets: TicketsService,
+    private ctx: PlayerContextService
+  ) {}
 
   ngOnInit() {
     this.slip.stake$.subscribe(v => this.stake = v ?? 10);
   }
 
   setStake(v: any) { this.slip.setStake(Number(v)); }
-  remove(offerId: string) { this.slip.remove(offerId); }
+  remove(offerId: string) { this.slip.removeByOffer(offerId); }
   get combinedOdds() { return this.slip.combinedOdds(); }
 
   async place() {
     const { stake, selections } = this.slip.getSnapshot();
     if (!selections.length) return;
 
-    const playerId = localStorage.getItem('playerId')!;
+    const current = this.ctx.snapshot;
+    if (!current) {
+      this.messages = ['Select a player first (Players tab).'];
+      return;
+    }
+
     const body = {
-      playerId,
+      playerId: current.id,
       stake,
       selections: selections.map(s => ({
         offerId: s.offerId,

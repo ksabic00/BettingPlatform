@@ -17,12 +17,15 @@ git_push.sh
 index.ts
 model/createPlayerCommand.ts
 model/depositCommand.ts
+model/marketOfferDto.ts
+model/matchOfferDto.ts
 model/models.ts
 model/offerCategory.ts
 model/offerDto.ts
 model/offerOutcomeDto.ts
 model/placeTicketCommand.ts
 model/placeTicketSelectionDto.ts
+model/playerSummaryDto.ts
 model/ticketDetailDto.ts
 model/ticketPlacedDto.ts
 model/ticketSelectionLineDto.ts

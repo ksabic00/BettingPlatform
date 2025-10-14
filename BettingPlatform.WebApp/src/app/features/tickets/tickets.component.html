@@ -1,11 +1,6 @@
 <div class="card tickets-card">
   <div class="card-head">
     <h2 class="section-title">Tickets</h2>
-
-    <div class="tools">
-      <span class="muted">{{ tickets?.length || 0 }} total</span>
-      <button type="button" class="btn-light" (click)="reload()">Refresh</button>
-    </div>
   </div>
 
   <table class="tbl" *ngIf="tickets?.length; else empty">
@@ -38,6 +33,9 @@
           >
             {{ t.status }}
           </span>
+        </td>
+        <td>
+          <a [routerLink]="['/tickets', t.ticketId]" class="btn btn-link btn-sm">View</a>
         </td>
       </tr>
     </tbody>

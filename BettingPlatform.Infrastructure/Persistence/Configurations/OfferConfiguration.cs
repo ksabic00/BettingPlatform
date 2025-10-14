@@ -22,5 +22,7 @@ public class OfferConfiguration : IEntityTypeConfiguration<Offer>
          .OnDelete(DeleteBehavior.Restrict);
 
         b.Property(x => x.ValidFromUtc).IsRequired();
+        b.HasIndex(x => new { x.MatchId, x.MarketTemplateId }).IsUnique();
+
     }
 }

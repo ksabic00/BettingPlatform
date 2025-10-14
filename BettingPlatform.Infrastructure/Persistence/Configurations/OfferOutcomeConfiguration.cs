@@ -24,5 +24,7 @@ public class OfferOutcomeConfiguration : IEntityTypeConfiguration<OfferOutcome>
          .OnDelete(DeleteBehavior.Restrict);
 
         b.ToTable(t => t.HasCheckConstraint("CK_OfferOutcome_Odds_Min", "[Odds] >= 1.00"));
+        b.HasIndex(x => new { x.OfferId, x.OutcomeTemplateId }).IsUnique();
+
     }
 }

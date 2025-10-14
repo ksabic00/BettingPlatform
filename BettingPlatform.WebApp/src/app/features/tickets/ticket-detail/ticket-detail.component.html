@@ -1,0 +1,58 @@
+<div class="toolbar">
+    <button class="btn" (click)="back()">← Back</button>
+  </div>
+  
+  <div *ngIf="loading">Loading…</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+  
+  <section *ngIf="!loading && data">
+    <div class="card header">
+      <div class="row">
+        <div>
+          <div class="title">Ticket {{ data.ticketId }}</div>
+          <div class="muted">{{ data.createdAtUtc | date:'dd.MM.yyyy, HH:mm' }}</div>
+        </div>
+        <div class="status">
+          <span class="badge">{{ data.status }}</span>
+        </div>
+      </div>
+    </div>
+  
+    <div class="card">
+      <h3>Selections</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Match</th>
+            <th>Pick</th>
+            <th>Odds</th>
+            <th>Category</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of data.selections">
+            <td>{{ s.homeTeam }} - {{ s.awayTeam }}</td>
+            <td>{{ s.outcomeCode }}</td>
+            <td>{{ s.oddAtPlacement | number:'1.2-2' }}</td>
+            <td>
+              <span class="badge" [class.badge-top]="s.categoryAtPlacement === 'Top'">
+                {{ s.categoryAtPlacement }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <div class="card summary">
+      <h3>Summary</h3>
+      <div class="grid">
+        <div><span class="label">Stake (gross): </span><span>{{ data.stakeGross | number:'1.2-2' }}</span></div>
+        <div><span class="label">Fee: </span><span>{{ fee() | number:'1.2-2' }}</span></div>
+        <div><span class="label">Stake (net): </span><span>{{ data.stakeNet | number:'1.2-2' }}</span></div>
+        <div><span class="label">Combined odds: </span><span>{{ data.combinedOdds | number:'1.2-2' }}</span></div>
+        <div><span class="label">Potential payout: </span><span class="strong">{{ data.potentialPayout | number:'1.2-2' }}</span></div>
+      </div>
+    </div>
+  </section>
+  

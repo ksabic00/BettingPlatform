@@ -1,32 +1,61 @@
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PlayersService, CreatePlayerCommand } from '../../api';
+import { PlayersService, CreatePlayerCommand, PlayerSummaryDto } from '../../api';
+import { PlayerContextService, CurrentPlayer } from '../../core/state/player-context.service';
 
 @Component({
-  selector: 'app-player',
   standalone: true,
+  selector: 'app-players',
   imports: [CommonModule, FormsModule],
-  templateUrl: './player.component.html'
+  templateUrl: './player.component.html',
 })
-export class PlayerComponent {
-  displayName = '';
-  messages: string[] = [];
-  playerId?: string;
+export class PlayerComponent implements OnInit {
+  players: PlayerSummaryDto[] = [];
+  current: CurrentPlayer = null;
 
-  constructor(private players: PlayersService, @Inject(PLATFORM_ID) private pid: Object) {
-    if (isPlatformBrowser(this.pid)) this.playerId = localStorage.getItem('playerId') ?? undefined;
+  selectedId: string | null = null; 
+  name = '';                        
+  msg = '';
+
+  constructor(private api: PlayersService, private ctx: PlayerContextService) {}
+
+  ngOnInit(): void {
+    this.ctx.current$.subscribe(p => {
+      this.current = p;
+      if (!this.selectedId && p) this.selectedId = p.id;
+    });
+
+    this.refresh();
+  }
+
+  refresh() {
+    this.api.apiPlayersGet().subscribe(list => {
+      this.players = list ?? [];
+      if (!this.current && this.players.length === 1) {
+        this.selectedId = this.players[0].id!;
+      }
+    });
+  }
+
+  applySelection() {
+    const p = this.players.find(x => x.id === this.selectedId!);
+    if (!p) return;
+    this.ctx.set({ id: p.id!, displayName: p.displayName! });
+    this.msg = `Selected: ${p.displayName}`;
   }
 
   create() {
-    const cmd: CreatePlayerCommand = { displayName: this.displayName };
-    this.players.apiPlayersPost(cmd).subscribe({
-      next: (id: string) => {
-        if (isPlatformBrowser(this.pid)) localStorage.setItem('playerId', id);
-        this.playerId = id;
-        this.messages = ['Player created.'];
-      },
-      error: (e: any) => this.messages = e.messages ?? ['Error']
+    const cmd: CreatePlayerCommand = { displayName: this.name.trim() };
+    if (!cmd.displayName) return;
+
+    this.api.apiPlayersPost(cmd).subscribe(id => {
+      this.name = '';
+      this.msg = 'Player created.';
+      this.refresh();
+
+      this.ctx.set({ id: id!, displayName: cmd.displayName! });
+      this.selectedId = id!;
     });
   }
 }

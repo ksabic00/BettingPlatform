@@ -1,0 +1,14 @@
+.toolbar { margin-bottom: 1rem; }
+.btn { padding: .4rem .7rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: #fff; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: .75rem; padding: 1rem; margin-bottom: 1rem; }
+.header .row { display:flex; justify-content: space-between; align-items:center; }
+.title { font-weight: 700; }
+.muted { color: #64748b; }
+.badge { padding: .15rem .5rem; border-radius: 999px; font-size: .75rem; background: #e2e8f0; }
+.badge-top { color:#1d4ed8; background: rgba(29,78,216,.12); }
+.table { width:100%; border-collapse: collapse; }
+.table th, .table td { padding:.6rem .5rem; border-top:1px solid #e2e8f0; text-align:left; }
+.summary .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:.5rem .75rem; }
+.summary .label { color:#64748b; }
+.summary .strong { font-weight:700; }
+.error { color:#b91c1c; }

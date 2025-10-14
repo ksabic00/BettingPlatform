@@ -1,7 +1,37 @@
-<div class="card">
-  <h2>Create player</h2>
-  <input class="input" placeholder="Display name" [(ngModel)]="displayName">
-  <button class="btn btn-primary" (click)="create()">Create</button>
-  <div *ngFor="let m of messages" style="margin-top:8px;color:#DC2626">{{m}}</div>
-  <div *ngIf="playerId" style="margin-top:8px">playerId: {{ playerId }}</div>
+<h2 class="section-title">Players</h2>
+
+<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+  <div>
+    <div class="muted" style="font-size:.9rem;">Current user</div>
+    <div style="font-weight:600; font-size:1.05rem;">
+      {{ current?.displayName || '— not selected —' }}
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:1rem;">
+  <h3 style="margin:0 0 .75rem;">Switch player</h3>
+  <div style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap;">
+    <select [(ngModel)]="selectedId" style="min-width:220px; padding:.4rem .6rem;">
+      <option [ngValue]="null">— choose player —</option>
+      <option *ngFor="let p of players" [ngValue]="p.id">{{ p.displayName }}</option>
+    </select>
+
+    <button
+      (click)="applySelection()"
+      [disabled]="!selectedId || selectedId === current?.id"
+      style="padding:.45rem .8rem;">
+      Select
+    </button>
+
+  </div>
+</div>
+
+<div class="card" style="margin-top:1rem;">
+  <h3 style="margin:0 0 .75rem;">Create new player</h3>
+  <form (ngSubmit)="create()" #f="ngForm" style="display:flex; gap:.5rem; flex-wrap:wrap;">
+    <input name="name" [(ngModel)]="name" required maxlength="100" placeholder="Display name"
+           style="min-width:220px; padding:.4rem .6rem;" />
+    <button type="submit" [disabled]="!f.form.valid" style="padding:.45rem .8rem;">Create</button>
+  </form>
 </div>

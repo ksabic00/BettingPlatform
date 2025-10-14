@@ -9,10 +9,11 @@ import {
   PlaceTicketSelectionDto
 } from '../../api';
 import { BetslipService, SlipSelection } from '../../core/state/betslip.service';
+import { PlayerContextService } from '../../core/state/player-context.service';
 
 @Component({
   standalone: true,
-  selector: 'app-betslip-panel',      
+  selector: 'app-betslip-panel',
   imports: [CommonModule, FormsModule],
   templateUrl: './betslip.component.html',
   styleUrls: ['./betslip.component.scss']
@@ -26,29 +27,22 @@ export class BetslipComponent {
 
   constructor(
     private slip: BetslipService,
-    private tickets: TicketsService
+    private tickets: TicketsService,
+    private ctx: PlayerContextService
   ) {}
 
   trackSel = (_: number, s: SlipSelection) => s.offerId;
 
-  remove(offerId: string) {
-    this.slip.remove(offerId);
-  }
-
-  setStake(v: number) {
-    this.slip.setStake(Number(v) || 0);
-  }
-
-  combinedOdds() {
-    return this.slip.combinedOdds();
-  }
+  remove(offerId: string) { this.slip.removeByOffer(offerId); }
+  setStake(v: number) { this.slip.setStake(Number(v) || 0); }
+  combinedOdds() { return this.slip.combinedOdds(); }
 
   async place() {
     this.messages = [];
 
-    const playerId = localStorage.getItem('playerId') ?? '';
-    if (!playerId) {
-      this.messages = ['Player is not set. (Create or set playerId in localStorage)'];
+    const current = this.ctx.snapshot;
+    if (!current) {
+      this.messages = ['Select a player first (Players tab).'];
       return;
     }
 
@@ -65,7 +59,7 @@ export class BetslipComponent {
     }
 
     const body: PlaceTicketCommand = {
-      playerId,
+      playerId: current.id,
       stake,
       selections: selections.map<PlaceTicketSelectionDto>(s => ({
         offerId: s.offerId,
@@ -77,9 +71,7 @@ export class BetslipComponent {
     this.tickets.apiTicketsPost(body).subscribe({
       next: r => {
         this.placing = false;
-        this.messages = [
-          `Ticket ${r.ticketId} placed. Payout: ${r.potentialPayout}`
-        ];
+        this.messages = [`Ticket ${r.ticketId} placed. Payout: ${r.potentialPayout}`];
       },
       error: (e) => {
         this.placing = false;

@@ -1,25 +1,82 @@
 <h2 class="section-title">Offers</h2>
 
-<div class="offer card" *ngFor="let o of offers; trackBy: trackById">
-  <div class="offer-head">
-    <div class="names">{{ o.homeTeam }} - {{ o.awayTeam }}</div>
-    <div class="meta">
-      <span class="badge" [class.badge-top]="o.category === OfferCategory.Regular">
-        {{ o.category === OfferCategory.Regular ? 'TOP' : 'Base' }}
-      </span>
-      <span class="muted">{{ o.marketCode }}</span>
-      <span class="muted">• {{ o.startsAtUtc | date:'M/d, HH:mm' }}</span>
-    </div>
+<section *ngIf="topMatches.length" class="offers-section">
+  <div class="section-head">
+    <span class="badge-top-header">TOP</span>
   </div>
 
-  <div class="outcomes">
-    <button
-      class="chip"
-      *ngFor="let oc of o.outcomes"
-      (click)="pick(o, oc)"
-      [class.selected]="isSelected(o.offerId, oc.outcomeTemplateId)">
-      <span class="code">{{ oc.outcomeCode }}</span>
-      <span class="odds">{{ oc.odds | number:'1.2-2' }}</span>
-    </button>
+  <ng-container *ngFor="let m of topMatches; trackBy: trackByMatch">
+    <div class="offer card card-top">
+      <div class="offer-head">
+        <div class="names">{{ m.homeTeam }} - {{ m.awayTeam }}</div>
+        <div class="meta">
+          <span class="muted">{{ m.startsAtUtc | date:'M/d, HH:mm' }}</span>
+        </div>
+      </div>
+
+      <ng-container *ngFor="let mk of m.markets; trackBy: trackByMarket">
+        <div class="market-line">
+          <div class="market-title">{{ marketLabel(mk.marketCode) }}</div>
+          <div class="outcomes">
+            <button
+            class="chip"
+            *ngFor="let oc of mk.outcomes"
+            (click)="pick(m, mk, oc)"
+            [disabled]="!oc.isEnabled || m.suspended"
+            [class.disabled]="!oc.isEnabled || m.suspended"
+            [class.selected]="isSelected(m.matchId, oc.outcomeTemplateId)">        
+            <span class="code">{{ oc.outcomeCode }}</span>       
+            <span class="odds" *ngIf="oc.isEnabled && !m.suspended; else oddsDash">
+              {{ oc.odds | number:'1.2-2' }}
+            </span>
+            <ng-template #oddsDash>
+              <span class="odds muted">—</span>
+            </ng-template>
+          </button>
+          
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+</section>
+
+<section *ngIf="regularMatches.length" class="offers-section">
+  <div class="section-head">
+    <span class="badge-regular-header">Regular</span>
   </div>
-</div>
+
+  <ng-container *ngFor="let m of regularMatches; trackBy: trackByMatch">
+    <div class="offer card">
+      <div class="offer-head">
+        <div class="names">{{ m.homeTeam }} - {{ m.awayTeam }}</div>
+        <div class="meta">
+          <span class="muted">{{ m.startsAtUtc | date:'M/d, HH:mm' }}</span>
+        </div>
+      </div>
+
+      <ng-container *ngFor="let mk of m.markets; trackBy: trackByMarket">
+        <div class="market-line">
+          <div class="market-title">{{ marketLabel(mk.marketCode) }}</div>
+          <div class="outcomes">
+            <button
+            class="chip"
+            *ngFor="let oc of mk.outcomes"
+            (click)="pick(m, mk, oc)"
+            [disabled]="!oc.isEnabled || m.suspended"
+            [class.disabled]="!oc.isEnabled || m.suspended"
+            [class.selected]="isSelected(m.matchId, oc.outcomeTemplateId)">        
+            <span class="code">{{ oc.outcomeCode }}</span>       
+            <span class="odds" *ngIf="oc.isEnabled && !m.suspended; else oddsDash">
+              {{ oc.odds | number:'1.2-2' }}
+            </span>
+            <ng-template #oddsDash>
+              <span class="odds muted">—</span>
+            </ng-template>
+          </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+</section>

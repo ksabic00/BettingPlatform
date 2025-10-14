@@ -11,6 +11,7 @@ import { HttpHeaders }                                       from '@angular/comm
 
 import { Observable }                                        from 'rxjs';
 
+import { MatchOfferDto } from '../model/models';
 import { OfferDto } from '../model/models';
 
 
@@ -28,5 +29,12 @@ export interface OffersServiceInterface {
      * @param asOfUtc 
      */
     apiOffersActiveGet(asOfUtc?: string, extraHttpRequestParams?: any): Observable<Array<OfferDto>>;
+
+    /**
+     * 
+     * 
+     * @param asOfUtc 
+     */
+    apiOffersActiveGroupedGet(asOfUtc?: string, extraHttpRequestParams?: any): Observable<Array<MatchOfferDto>>;
 
 }

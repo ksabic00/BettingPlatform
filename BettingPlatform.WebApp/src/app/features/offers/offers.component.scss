@@ -28,3 +28,37 @@
 .chip.selected {
   border-color:#3b82f6; background:#e8f0ff; color:#0b5fff;
 }
+.offers-section { margin-bottom: 1rem; }
+
+.section-head {
+  display: flex; align-items: center;
+  margin: .25rem 0 .5rem;
+}
+
+.badge-top-header,
+.badge-regular-header {
+  font-size: .8rem; font-weight: 700;
+  padding: .25rem .5rem; border-radius: 999px;
+}
+
+.badge-top-header {
+  color: #1d4ed8; background: rgba(29,78,216,.10); border: 1px solid rgba(29,78,216,.25);
+}
+
+.badge-regular-header {
+  color: #334155; background: rgba(51,65,85,.10); border: 1px solid rgba(51,65,85,.18);
+}
+
+.card-top { border: 1px solid rgba(29,78,216,.25); box-shadow: 0 8px 18px rgba(29,78,216,.07); }
+.market-line { margin-top: .5rem; }
+.market-title { font-weight: 600; margin-bottom: .35rem; color: #64748b; }
+.chip.disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  pointer-events: none; 
+  filter: grayscale(0.2);
+}
+
+.odds.muted {
+  color: #94a3b8; 
+}

@@ -13,8 +13,6 @@ public class TicketSelectionConfiguration : IEntityTypeConfiguration<TicketSelec
 
         b.Property(x => x.OddAtPlacement).HasPrecision(6, 2);
 
-        b.HasIndex(x => new { x.TicketId, x.MatchId }).IsUnique();
-
         b.HasIndex(x => x.TicketId)
          .IsUnique()
          .HasDatabaseName("IX_TicketSelection_TopOnly")
