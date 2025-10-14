@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+
 import { TicketsService } from '../../../api';
 import { BetslipService } from '../../../core/state/betslip.service';
 import { PlayerContextService } from '../../../core/state/player-context.service';
+import { ToastService } from '../../../core/ui/toast.service';   // <-- DODANO
 
 @Component({
   selector: 'app-betslip-panel',
@@ -15,13 +17,15 @@ import { PlayerContextService } from '../../../core/state/player-context.service
 export class BetslipPanelComponent implements OnInit {
   stake = 10;
   placing = false;
-  messages: string[] = [];
+
+
   selections$ = this.slip.selections$;
 
   constructor(
     public slip: BetslipService,
     private tickets: TicketsService,
-    private ctx: PlayerContextService
+    private ctx: PlayerContextService,
+    private toast: ToastService                     
   ) {}
 
   ngOnInit() {
@@ -34,11 +38,15 @@ export class BetslipPanelComponent implements OnInit {
 
   async place() {
     const { stake, selections } = this.slip.getSnapshot();
-    if (!selections.length) return;
+
+    if (!selections.length) {
+      this.toast.info('Add at least one selection.');
+      return;
+    }
 
     const current = this.ctx.snapshot;
     if (!current) {
-      this.messages = ['Select a player first (Players tab).'];
+      this.toast.warning('Select a player first (Players tab).');
       return;
     }
 
@@ -51,16 +59,27 @@ export class BetslipPanelComponent implements OnInit {
       }))
     };
 
-    this.messages = [];
     try {
       this.placing = true;
       const dto = await firstValueFrom(this.tickets.apiTicketsPost(body));
-      this.messages = [`Ticket ${dto.ticketId} placed. Payout: ${dto.potentialPayout}`];
+      this.toast.success(`Ticket ${dto.ticketId} placed. Payout: ${dto.potentialPayout}`);
       this.slip.clear();
     } catch (e: any) {
-      this.messages = e?.messages ?? ['Error'];
+      const msgs: string[] = e?.messages ?? ['Failed to place ticket.'];
+      msgs.forEach(m => this.toast.error(m));
     } finally {
       this.placing = false;
     }
+  }
+
+  private readonly MARKET_LABELS: Record<string, string> = {
+    '1X2': 'Basic',
+    'DoubleChance': 'Double Chance'
+  };
+
+  marketLabel(code: string | null | undefined): string {
+    const c = (code ?? '').trim();
+    if (!c) return '';
+    return this.MARKET_LABELS[c] ?? c;
   }
 }

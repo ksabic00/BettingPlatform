@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlayerContextService } from '../../core/state/player-context.service';
+import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   selector: 'app-wallet',
@@ -19,7 +20,7 @@ export class WalletComponent {
   data?: any;
   messages: string[] = [];
 
-  constructor(private api: WalletService, private ctx: PlayerContextService) {
+  constructor(private api: WalletService, private ctx: PlayerContextService, private toast: ToastService) {
     this.ctx.current$.subscribe(_ => this.load()); 
   }
 
@@ -40,16 +41,25 @@ export class WalletComponent {
   }
 
   async deposit() {
-    this.messages = [];
+    const current = this.ctx.snapshot;
+    if (!current) {
+      this.toast.warning('Select a player first (Players tab).');
+      return;
+    }
+    if (!this.amount || this.amount <= 0) {
+      this.toast.warning('Amount must be greater than 0.');
+      return;
+    }
+  
     try {
-      const current = this.ctx.snapshot;
-      if (!current) { this.messages = ['Select a player first.']; return; }
-
-      await firstValueFrom(this.api.apiWalletDepositPost({ playerId: current.id, amount: this.amount }));
-      this.messages = ['Deposit successful.'];
+      await firstValueFrom(
+        this.api.apiWalletDepositPost({ playerId: current.id, amount: this.amount })
+      );
+      this.toast.success('Deposit successful.');
       this.load();
     } catch (e: any) {
-      this.messages = e?.messages ?? ['Error'];
+      (e?.messages ?? ['Deposit failed.']).forEach((m: string) => this.toast.error(m));
     }
   }
+  
 }

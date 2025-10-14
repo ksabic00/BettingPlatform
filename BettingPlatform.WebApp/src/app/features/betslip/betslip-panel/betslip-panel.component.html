@@ -8,7 +8,7 @@
            style="display:flex;justify-content:space-between;gap:8px;align-items:center; margin:6px 0">
         <div>
           <div>{{ s.match }}</div>
-          <div class="muted">{{ s.marketCode }} • {{ s.outcomeCode }}</div>
+          <div class="muted"> {{marketLabel(s.marketCode)}} - {{ s.outcomeCode }}</div>
         </div>
         <div class="right" style="min-width:80px">{{ s.odds | number:'1.2-2' }}</div>
         <button class="link" (click)="remove(s.offerId)">×</button>
@@ -29,6 +29,6 @@
       </button>
     </ng-container>
   
-    <div *ngFor="let m of messages" class="error" style="margin-top:8px">{{ m }}</div>
+    <!-- <div *ngFor="let m of messages" class="error" style="margin-top:8px">{{ m }}</div> -->
   </div>
   

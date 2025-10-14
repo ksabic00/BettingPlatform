@@ -10,7 +10,6 @@
     <label for="amount" class="lbl">Amount</label>
     <input id="amount" class="input" type="number" min="1" step="1" [(ngModel)]="amount" />
     <button class="btn btn-primary" (click)="deposit()" [disabled]="loading">Deposit</button>
-    <button class="btn" (click)="load()" [disabled]="loading">Refresh</button>
   </div>
 
   <h3 class="section-title sm">Last transactions</h3>

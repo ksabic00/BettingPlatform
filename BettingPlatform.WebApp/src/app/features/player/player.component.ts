@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PlayersService, CreatePlayerCommand, PlayerSummaryDto } from '../../api';
 import { PlayerContextService, CurrentPlayer } from '../../core/state/player-context.service';
+import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   standalone: true,
@@ -18,7 +19,7 @@ export class PlayerComponent implements OnInit {
   name = '';                        
   msg = '';
 
-  constructor(private api: PlayersService, private ctx: PlayerContextService) {}
+  constructor(private api: PlayersService, private ctx: PlayerContextService, private toast: ToastService) {}
 
   ngOnInit(): void {
     this.ctx.current$.subscribe(p => {
@@ -42,20 +43,22 @@ export class PlayerComponent implements OnInit {
     const p = this.players.find(x => x.id === this.selectedId!);
     if (!p) return;
     this.ctx.set({ id: p.id!, displayName: p.displayName! });
-    this.msg = `Selected: ${p.displayName}`;
+    this.toast.info(`Playing as: ${p.displayName}`);
   }
 
   create() {
-    const cmd: CreatePlayerCommand = { displayName: this.name.trim() };
-    if (!cmd.displayName) return;
-
-    this.api.apiPlayersPost(cmd).subscribe(id => {
-      this.name = '';
-      this.msg = 'Player created.';
-      this.refresh();
-
-      this.ctx.set({ id: id!, displayName: cmd.displayName! });
-      this.selectedId = id!;
+    const displayName = this.name.trim();
+    if (!displayName) { this.toast.warning('Enter display name.'); return; }
+  
+    this.api.apiPlayersPost({ displayName }).subscribe({
+      next: id => {
+        this.name = '';
+        this.toast.success('Player created.');
+        this.refresh();
+        this.ctx.set({ id: id!, displayName });
+        this.selectedId = id!;
+      },
+      error: e => (e?.messages ?? ['Create failed.']).forEach((m: string) => this.toast.error(m))
     });
   }
 }

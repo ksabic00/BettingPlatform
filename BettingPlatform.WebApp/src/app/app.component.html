@@ -13,6 +13,7 @@
   <div class="content">
     <main>
       <router-outlet></router-outlet>
+      <app-toast-container></app-toast-container>
     </main>
 
     <aside class="betslip-aside" *ngIf="!(hideAside$ | async)">

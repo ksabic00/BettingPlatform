@@ -3,6 +3,7 @@ import { Router, ActivatedRoute, NavigationEnd, RouterLink, RouterLinkActive, Ro
 import { filter, map, startWith } from 'rxjs/operators';
 import { AsyncPipe, CommonModule, NgIf } from '@angular/common';
 import { BetslipPanelComponent } from './features/betslip/betslip-panel/betslip-panel.component';
+import { ToastContainerComponent } from './core/ui/toast-container.component';
 
 @Component({
   selector: 'app-root',
@@ -10,7 +11,7 @@ import { BetslipPanelComponent } from './features/betslip/betslip-panel/betslip-
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   imports: [CommonModule,   RouterOutlet, RouterLink, RouterLinkActive, NgIf, AsyncPipe,
-    BetslipPanelComponent]
+    BetslipPanelComponent,ToastContainerComponent]
 })
 export class AppComponent {
   hideAside$ = this.router.events.pipe(

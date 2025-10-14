@@ -6,7 +6,7 @@
            *ngFor="let s of selections$ | async; trackBy: trackSel">
         <div class="info">
           <div class="match">{{ s.match }}</div>
-          <div class="muted">{{ s.marketCode }} • {{ s.outcomeCode }}</div>
+          <div class="muted"> {{marketLabel(s.marketCode)}} - {{ s.outcomeCode }}</div>
         </div>
         <div class="odds right">{{ s.odds | number:'1.2-2' }}</div>
         <button class="icon" (click)="remove(s.offerId)" title="Remove">×</button>

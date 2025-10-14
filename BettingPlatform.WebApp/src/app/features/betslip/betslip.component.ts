@@ -10,6 +10,7 @@ import {
 } from '../../api';
 import { BetslipService, SlipSelection } from '../../core/state/betslip.service';
 import { PlayerContextService } from '../../core/state/player-context.service';
+import { ToastService } from '../../core/ui/toast.service';
 
 @Component({
   standalone: true,
@@ -28,7 +29,8 @@ export class BetslipComponent {
   constructor(
     private slip: BetslipService,
     private tickets: TicketsService,
-    private ctx: PlayerContextService
+    private ctx: PlayerContextService,
+    private toast: ToastService
   ) {}
 
   trackSel = (_: number, s: SlipSelection) => s.offerId;
@@ -71,12 +73,25 @@ export class BetslipComponent {
     this.tickets.apiTicketsPost(body).subscribe({
       next: r => {
         this.placing = false;
-        this.messages = [`Ticket ${r.ticketId} placed. Payout: ${r.potentialPayout}`];
+        this.toast.success(`Ticket ${r.ticketId} placed. Payout: ${r.potentialPayout}`);
+        this.slip.clear();
       },
       error: (e) => {
         this.placing = false;
-        this.messages = e?.messages ?? ['Failed to place ticket.'];
+        const msgs: string[] = e?.messages ?? ['Failed to place ticket.'];
+        msgs.forEach(m => this.toast.error(m));
       }
     });
+  }
+
+  private readonly MARKET_LABELS: Record<string, string> = {
+    '1X2': 'Basic',
+    'DoubleChance': 'Double Chance'
+  };
+  
+  marketLabel(code: string | null | undefined): string {
+    const c = (code ?? '').trim();   
+    if (!c) return '';
+    return this.MARKET_LABELS[c] ?? c;
   }
 }
