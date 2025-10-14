@@ -1,0 +1,49 @@
+<div class="card tickets-card">
+  <div class="card-head">
+    <h2 class="section-title">Tickets</h2>
+
+    <div class="tools">
+      <span class="muted">{{ tickets?.length || 0 }} total</span>
+      <button type="button" class="btn-light" (click)="reload()">Refresh</button>
+    </div>
+  </div>
+
+  <table class="tbl" *ngIf="tickets?.length; else empty">
+    <thead>
+      <tr>
+        <th class="col-created">Created</th>
+        <th class="col-small right">Sel.</th>
+        <th class="col-num right">Stake</th>
+        <th class="col-num right">Odds</th>
+        <th class="col-num right">Potential</th>
+        <th class="col-status">Status</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let t of tickets; trackBy: trackById">
+        <td>{{ t.createdAtUtc | date:'dd.MM.yyyy, HH:mm' }}</td>
+        <td >{{ t.selectionCount }}</td>
+        <td >{{ t.stakeGross | number:'1.2-2' }}</td>
+        <td >{{ t.combinedOdds | number:'1.2-2' }}</td>
+        <td >{{ t.potentialPayout | number:'1.2-2' }}</td>
+        <td>
+          <span
+            class="pill"
+            [ngClass]="{
+              'pill--placed': t.status === 'Placed',
+              'pill--won':    t.status === 'Won',
+              'pill--lost':   t.status === 'Lost'
+            }"
+          >
+            {{ t.status }}
+          </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #empty>
+    <div class="empty muted">No tickets yet.</div>
+  </ng-template>
+</div>

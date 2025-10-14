@@ -1,0 +1,47 @@
+<div class="card wallet-card">
+  <div class="card-head">
+    <h2 class="section-title">Wallet</h2>
+    <div class="balance">
+      Balance: <b class="mono">{{ (data?.balance ?? 0) | number:'1.2-2' }}</b>
+    </div>
+  </div>
+
+  <div class="deposit">
+    <label for="amount" class="lbl">Amount</label>
+    <input id="amount" class="input" type="number" min="1" step="1" [(ngModel)]="amount" />
+    <button class="btn btn-primary" (click)="deposit()" [disabled]="loading">Deposit</button>
+    <button class="btn" (click)="load()" [disabled]="loading">Refresh</button>
+  </div>
+
+  <h3 class="section-title sm">Last transactions</h3>
+
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th class="col-date">Date</th>
+        <th class="col-type">Type</th>
+        <th class="col-amount right">Amount</th>
+        <th class="col-ref">Ref</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let t of data?.lastTransactions; trackBy: trackByRef">
+        <td class="col-date">{{ t.occurredAtUtc | date:'M/d/yy, HH:mm' }}</td>
+        <td class="col-type">{{ t.type }}</td>
+        <td [class.negative]="(t.amount ?? 0) < 0">
+          {{ (t.amount ?? 0) | number:'1.2-2' }}
+        </td>
+        <td class="col-ref mono">{{ t.referenceId }}</td>
+      </tr>
+
+      <tr *ngIf="!data?.lastTransactions?.length">
+        <td class="empty" colspan="4">No transactions yet.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="messages.length" class="info" style="margin-top:8px" >
+    <div *ngFor="let m of messages">{{ m }}</div>
+  </div>
+  <div *ngIf="err" class="error">{{ err }}</div>
+</div>

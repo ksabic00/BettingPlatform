@@ -1,0 +1,13 @@
+export * from './offers.service';
+import { OffersService } from './offers.service';
+export * from './offers.serviceInterface';
+export * from './players.service';
+import { PlayersService } from './players.service';
+export * from './players.serviceInterface';
+export * from './tickets.service';
+import { TicketsService } from './tickets.service';
+export * from './tickets.serviceInterface';
+export * from './wallet.service';
+import { WalletService } from './wallet.service';
+export * from './wallet.serviceInterface';
+export const APIS = [OffersService, PlayersService, TicketsService, WalletService];

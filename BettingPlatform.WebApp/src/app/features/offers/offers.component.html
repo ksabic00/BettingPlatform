@@ -1,0 +1,25 @@
+<h2 class="section-title">Offers</h2>
+
+<div class="offer card" *ngFor="let o of offers; trackBy: trackById">
+  <div class="offer-head">
+    <div class="names">{{ o.homeTeam }} - {{ o.awayTeam }}</div>
+    <div class="meta">
+      <span class="badge" [class.badge-top]="o.category === OfferCategory.Regular">
+        {{ o.category === OfferCategory.Regular ? 'TOP' : 'Base' }}
+      </span>
+      <span class="muted">{{ o.marketCode }}</span>
+      <span class="muted">• {{ o.startsAtUtc | date:'M/d, HH:mm' }}</span>
+    </div>
+  </div>
+
+  <div class="outcomes">
+    <button
+      class="chip"
+      *ngFor="let oc of o.outcomes"
+      (click)="pick(o, oc)"
+      [class.selected]="isSelected(o.offerId, oc.outcomeTemplateId)">
+      <span class="code">{{ oc.outcomeCode }}</span>
+      <span class="odds">{{ oc.odds | number:'1.2-2' }}</span>
+    </button>
+  </div>
+</div>

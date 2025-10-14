@@ -1,0 +1,7 @@
+<div class="card">
+  <h2>Create player</h2>
+  <input class="input" placeholder="Display name" [(ngModel)]="displayName">
+  <button class="btn btn-primary" (click)="create()">Create</button>
+  <div *ngFor="let m of messages" style="margin-top:8px;color:#DC2626">{{m}}</div>
+  <div *ngIf="playerId" style="margin-top:8px">playerId: {{ playerId }}</div>
+</div>

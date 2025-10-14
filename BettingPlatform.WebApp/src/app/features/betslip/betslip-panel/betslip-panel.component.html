@@ -1,0 +1,34 @@
+<div class="card">
+    <h3>Betslip</h3>
+  
+    <ng-container *ngIf="selections$ | async as selections">
+      <div *ngIf="!selections.length" class="muted">No selections.</div>
+  
+      <div *ngFor="let s of selections"
+           style="display:flex;justify-content:space-between;gap:8px;align-items:center; margin:6px 0">
+        <div>
+          <div>{{ s.match }}</div>
+          <div class="muted">{{ s.marketCode }} • {{ s.outcomeCode }}</div>
+        </div>
+        <div class="right" style="min-width:80px">{{ s.odds | number:'1.2-2' }}</div>
+        <button class="link" (click)="remove(s.offerId)">×</button>
+      </div>
+  
+      <div style="margin-top:10px">
+        <label class="muted">Stake</label>
+        <input class="input" type="number" min="1" step="1"
+               [ngModel]="stake" (ngModelChange)="setStake($event)">
+      </div>
+  
+      <div class="muted" style="margin:6px 0">
+        Combined odds: <b>{{ combinedOdds | number:'1.2-2' }}</b>
+      </div>
+  
+      <button class="btn btn-primary" [disabled]="placing" (click)="place()">
+        {{ placing ? 'Placing…' : 'Place ticket' }}
+      </button>
+    </ng-container>
+  
+    <div *ngFor="let m of messages" class="error" style="margin-top:8px">{{ m }}</div>
+  </div>
+  

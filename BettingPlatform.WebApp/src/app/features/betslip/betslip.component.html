@@ -1,0 +1,36 @@
+<div class="card">
+    <h3 class="section-title">Betslip</h3>
+  
+    <ng-container *ngIf="(selections$ | async)?.length; else empty">
+      <div class="line"
+           *ngFor="let s of selections$ | async; trackBy: trackSel">
+        <div class="info">
+          <div class="match">{{ s.match }}</div>
+          <div class="muted">{{ s.marketCode }} • {{ s.outcomeCode }}</div>
+        </div>
+        <div class="odds right">{{ s.odds | number:'1.2-2' }}</div>
+        <button class="icon" (click)="remove(s.offerId)" title="Remove">×</button>
+      </div>
+  
+      <label class="lbl">Stake</label>
+      <input class="input" type="number" min="1" step="1"
+             [ngModel]="stake$ | async"
+             (ngModelChange)="setStake($event)" />
+  
+      <div class="summary">
+        Combined odds:
+        <b class="mono">{{ combinedOdds() | number:'1.2-2' }}</b>
+      </div>
+  
+      <button class="btn btn-primary w-full" [disabled]="placing" (click)="place()">
+        {{ placing ? 'Placing…' : 'Place ticket' }}
+      </button>
+  
+      <div *ngFor="let m of messages" class="error">{{ m }}</div>
+    </ng-container>
+  
+    <ng-template #empty>
+      <div class="muted">No selections yet.</div>
+    </ng-template>
+  </div>
+  

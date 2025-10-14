@@ -5,6 +5,8 @@ using BettingPlatform.Infrastructure.Persistence;
 using BettingPlatform.Infrastructure.Persistence.Seed;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using System.Text.Json.Serialization;             
+using BettingPlatform.Api.Swagger;                
 
 namespace BettingPlatform.Api
 {
@@ -17,21 +19,30 @@ namespace BettingPlatform.Api
             builder.Host.UseSerilog((ctx, lc) =>
                 lc.ReadFrom.Configuration(ctx.Configuration));
 
-            builder.Services.AddControllers();
+            builder.Services
+                .AddControllers()
+                .AddJsonOptions(o =>                  
+                {
+                    o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
+
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>         
+            {
+                c.SchemaFilter<StringEnumSchemaFilter>();
+            });
 
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(builder.Configuration);
             builder.Services.AddTransient<ExceptionHandlingMiddleware>();
 
             builder.Services.AddCors(opt =>
-             {
-                 opt.AddPolicy("ng", p => p
-                     .WithOrigins("http://localhost:4200")
-                     .AllowAnyHeader()
-                     .AllowAnyMethod());
-             });
+            {
+                opt.AddPolicy("ng", p => p
+                    .WithOrigins("http://localhost:4200")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
+            });
 
             var app = builder.Build();
 
@@ -53,13 +64,9 @@ namespace BettingPlatform.Api
             }
 
             app.UseSerilogRequestLogging();
-
             app.UseMiddleware<ExceptionHandlingMiddleware>();
-
             app.UseHttpsRedirection();
-
-            app.UseCors("ng"); 
-
+            app.UseCors("ng");
             app.MapControllers();
 
             await app.RunAsync();

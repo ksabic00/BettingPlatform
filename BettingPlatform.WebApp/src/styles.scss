@@ -1,0 +1,20 @@
+:root { --blue:#1976d2; --muted:#6b7280; }
+*{ box-sizing:border-box; }
+body{ margin:0; font-family: Inter, system-ui, Arial, sans-serif; background:#f7fafc; color:#0f172a; }
+a{ color:var(--blue); text-decoration:none; }
+a.active{ font-weight:600; }
+.card{ background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); padding:14px 16px; }
+.shell{ padding:18px; }
+.topbar{ display:flex; align-items:center; justify-content:space-between; }
+.brand{ font-weight:700; color:#0f172a; }
+.nav{ display:flex; gap:16px; }
+.content{ display:grid; grid-template-columns: 1fr 360px; gap:16px; margin-top:16px; }
+@media (max-width: 1024px){ .content{ grid-template-columns: 1fr; } .betslip-aside{ display:none; } }
+.btn{ border:none; border-radius:8px; padding:10px 14px; cursor:pointer; }
+.btn-primary{ background:var(--blue); color:#fff; }
+.input{ width:100%; padding:8px 10px; border-radius:8px; border:1px solid #e5e7eb; }
+.muted{ color:var(--muted); }
+.right{ text-align:right; }
+.error{ color:#b91c1c; }
+.table{ width:100%; border-collapse:collapse; }
+.table th,.table td{ padding:8px 10px; border-bottom:1px solid #eee; }
